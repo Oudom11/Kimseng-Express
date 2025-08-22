@@ -89,7 +89,7 @@ useEffect(() => {
   const fetchData = async () => {
     try {
       const [timeRes, cityRes , seatsRes,tripTypesRes,vehiclesRes ] = await Promise.all([
-        axios.get("http://su24.34.juicyjisu.us/api/times"),
+        axios.get("https://su24.34.juicyjisu.us/api/times"),
         axios.get("http://su24.34.juicyjisu.us/api/cities"),
         axios.get("http://su24.34.juicyjisu.us/api/seat"),
         axios.get("http://su24.34.juicyjisu.us/api/triptype"),
