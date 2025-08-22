@@ -90,10 +90,10 @@ useEffect(() => {
     try {
       const [timeRes, cityRes , seatsRes,tripTypesRes,vehiclesRes ] = await Promise.all([
         axios.get("https://su24.34.juicyjisu.us/api/times"),
-        axios.get("http://su24.34.juicyjisu.us/api/cities"),
-        axios.get("http://su24.34.juicyjisu.us/api/seat"),
-        axios.get("http://su24.34.juicyjisu.us/api/triptype"),
-        axios.get("http://su24.34.juicyjisu.us/api/vehicles")
+        axios.get("https://su24.34.juicyjisu.us/api/cities"),
+        axios.get("https://su24.34.juicyjisu.us/api/seat"),
+        axios.get("https://su24.34.juicyjisu.us/api/triptype"),
+        axios.get("https://su24.34.juicyjisu.us/api/vehicles")
 
         
       ]);

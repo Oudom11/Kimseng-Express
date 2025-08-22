@@ -33,7 +33,7 @@ const Hero = () => {
   useEffect(() => {
   const fetchResearch = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/cities`);
+      const response = await axios.get(`https://su24.34.juicyjisu.us/api/cities`);
       // const res = response.data;
       const res = response.data.map((city: any) => {
         const name = city.City_name;
