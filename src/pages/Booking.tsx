@@ -39,7 +39,9 @@ const t = (key: string, vars?: Record<string, any>) => {
 
   const { toast } = useToast();
   const location = useLocation();
-  const { generateNextBookingId } = useBooking();
+  // const { generateNextBookingId } = useBooking();
+  const { addBooking, generateNextBookingId } = useBooking();
+
 
   const { prefilledData } = (location.state || {}) as {
     prefilledData?: {
@@ -145,7 +147,6 @@ const handleSubmit = async (e: React.FormEvent) => {
     });
     return;
   }
-
   setIsLoading(true);
   try {
     const response = await axios.get("https://su24.34.juicyjisu.us/api/routes");
@@ -232,7 +233,6 @@ const handleSubmit = async (e: React.FormEvent) => {
     return Object.keys(errors).length === 0;
   };
 
-
 const handleBookNow = async (trip: any, vehicle: any) => {
   if (!formData.firstName || !formData.lastName || !formData.phone) {
     toast({ title: "Error", description: "Please fill passenger info", variant: "destructive" });
@@ -261,7 +261,7 @@ const handleBookNow = async (trip: any, vehicle: any) => {
     passenger_phone: formData.phone,
     passenger_email: formData.email,
     passenger_count: formData.passengers,
-    special_requests: formData.specialRequests,
+    // special_requests: formData.specialRequests,
   
   };
 
@@ -290,7 +290,7 @@ const handleBookNow = async (trip: any, vehicle: any) => {
     // Update local seat state
     setSeats((prevSeats) =>
       prevSeats.map((seat) =>
-        selectedSeats.includes(seat.number) ? { ...seat, available: 0 } : seat
+      selectedSeats.includes(seat.number) ? { ...seat, available: 0 } : seat
       )
     );
 
@@ -298,25 +298,29 @@ const handleBookNow = async (trip: any, vehicle: any) => {
 
     // ✅ Save to BookingContext + sessionStorage
     const bookingId = generateNextBookingId();
-    const savedBooking = {
-      id: bookingId,
-      route: `${bookingDataTemplate.from_city} → ${bookingDataTemplate.to_city}`,
-      departureDate: formData.departureDate ? format(formData.departureDate, "MMMM dd, yyyy") : "N/A",
-      departureTime: formData.departureTime,
-      passengers: parseInt(formData.passengers, 10),
-      passengerName: `${formData.firstName} ${formData.lastName}`,
-      passengerEmail: formData.email,
-      passengerPhone: formData.phone,
-    };
+const savedBooking = {
+  id: bookingId,
+  route: `${formData.from} → ${formData.to}`, // use formData instead of bookingDataTemplate
+  departureDate: formData.departureDate ? format(formData.departureDate, "MMMM dd, yyyy") : "N/A",
+  departureTime: formData.departureTime || "N/A",
+  passengers: parseInt(formData.passengers || "0", 10),
+  passengerName: `${formData.firstName} ${formData.lastName}`,
+  passengerEmail: formData.email,
+  passengerPhone: formData.phone,
+};
 
     // addBooking(savedBooking);
-    localStorage.setItem(`bookingHistory`, JSON.stringify(savedBooking)); 
+  //  localStorage.setItem(`bookingHistory`, JSON.stringify(savedBooking)); 
+    addBooking(savedBooking);
 
-    // Go to confirmation page
-    navigate("/booking-confirmation", {
-      state: { bookingData: { ...bookingDataTemplate, Seat_number: selectedSeats.join(", "), bookingId } },
-    });
+    // ✅ Save as array in localStorage
+    const existing = JSON.parse(localStorage.getItem("bookingHistory") || "[]");
+    localStorage.setItem("bookingHistory", JSON.stringify([...existing, savedBooking]));
 
+    console.log("Saved booking:", savedBooking);
+
+    // Navigate to confirmation page
+    navigate("/booking-confirmation", { state: { bookingData: savedBooking } });
     // Reset form
     setFormData({
       from: "",
@@ -348,6 +352,120 @@ const handleBookNow = async (trip: any, vehicle: any) => {
   }
 };
 
+// const handleBookNow = async (trip: any, vehicle: any) => {
+//   if (!formData.firstName || !formData.lastName || !formData.phone) {
+//     toast({ title: "Error", description: "Please fill passenger info", variant: "destructive" });
+//     return;
+//   }
+
+//   if (selectedSeats.length !== Number(formData.passengers)) {
+//     toast({ title: "Error", description: "Select seats for all passengers", variant: "destructive" });
+//     return;
+//   }
+
+//   const basePrice = Number(trip.price || 0);
+//   const vehicleAdd = Number(vehicle?.Price_add || 0);
+//   const totalPrice = basePrice + vehicleAdd;
+
+//   const bookingDataTemplate = {
+//     from: trip.from_city,
+//     to: trip.to_city,
+//     Vehicle_name: vehicle.Vehicle_name,
+//     tripType: formData.tripType === "round-trip" ? "Roundtrip" : "Oneway",
+//     departureDate: formData.departureDate,
+//     departureTime: formData.departureTime,
+//     passengers: formData.passengers,
+//     firstName: formData.firstName,
+//     lastName: formData.lastName,
+//     email: formData.email,
+//     phone: formData.phone,
+//     returndate: formData.tripType === "round-trip" ? formData.returnDate : null,
+//     Seat_number: selectedSeats.join(", "),
+//   };
+
+//   setIsLoading(true);
+
+//   try {
+//     const token = localStorage.getItem("token");
+//     const url = token
+//       ? "https://su24.34.juicyjisu.us/api/bookings"
+//       : "https://su24.34.juicyjisu.us/api/bookings/guest";
+//     const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+//     // Send bookings for each seat
+//     await Promise.all(
+//       selectedSeats.map((seatNumber) =>
+//         axios.post(url, { ...bookingDataTemplate, Seat_number: seatNumber }, { headers })
+//       )
+//     );
+
+//     // Mark seats as unavailable
+//     await Promise.all(
+//       selectedSeats.map((seatNumber) =>
+//         axios.patch(`https://su24.34.juicyjisu.us/api/seat/by-name/${seatNumber}`, { Is_available: 0 })
+//       )
+//     );
+
+//     setSeats((prevSeats) =>
+//       prevSeats.map((seat) => (selectedSeats.includes(seat.number) ? { ...seat, available: 0 } : seat))
+//     );
+
+//     toast({ title: "Success", description: "Booking confirmed!" });
+
+//     // ✅ Save booking to localStorage array and context
+//     const bookingId = generateNextBookingId();
+//     const savedBooking = {
+//       id: bookingId,
+//       route: `${formData.from} → ${formData.to}`,
+//       departureDate: formData.departureDate ? format(formData.departureDate, "MMMM dd, yyyy") : "N/A",
+//       departureTime: formData.departureTime || "N/A",
+//       passengers: parseInt(formData.passengers || "0", 10),
+//       passengerName: `${formData.firstName} ${formData.lastName}`,
+//       passengerEmail: formData.email,
+//       passengerPhone: formData.phone,
+//     };
+
+//     // 1. Add to context
+//     addBooking(savedBooking);
+
+//     // 2. Save to localStorage array
+//     const storedBookings = JSON.parse(localStorage.getItem("bookingHistory") || "[]");
+//     const updatedBookings = [...storedBookings, savedBooking];
+//     localStorage.setItem("bookingHistory", JSON.stringify(updatedBookings));
+
+//     // Go to confirmation page
+//     navigate("/booking-confirmation", { state: { bookingData: { ...bookingDataTemplate, bookingId } } });
+
+//     // Reset form & seats
+//     setFormData({
+//       from: "",
+//       to: "",
+//       departureDate: undefined,
+//       returnDate: undefined,
+//       tripType: "one-way",
+//       departureTime: "",
+//       passengers: "1",
+//       firstName: "",
+//       lastName: "",
+//       email: "",
+//       phone: "",
+//       specialRequests: "",
+//     });
+//     setSelectedSeats([]);
+//     setAvailableTrips([]);
+//     setHasSearched(false);
+
+//   } catch (error: any) {
+//     console.error("Booking error:", error);
+//     toast({
+//       title: "Error",
+//       description: error.response?.data?.message || "Failed to book",
+//       variant: "destructive",
+//     });
+//   } finally {
+//     setIsLoading(false);
+//   }
+// };
 
 
 

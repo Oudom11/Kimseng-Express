@@ -5,7 +5,6 @@ import Footer from '../components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, MapPin, Calendar, Clock, Users, Mail, Phone, Info, CreditCard } from 'lucide-react';
-import { format } from 'date-fns';
 import { useLanguage } from '../context/LanguageContext';
 import { useBooking } from '../context/BookingContext';
 
@@ -16,35 +15,28 @@ const BookingConfirmation = () => {
   const { addBooking } = useBooking();
   const bookingAddedRef = React.useRef(false);
 
-  // Use the bookingId passed from the Booking page
-  const bookingId = bookingData?.bookingId;
-
   useEffect(() => {
-    if (bookingData && bookingId && !bookingAddedRef.current) {
-      // Check if this bookingId has already been added in this session
-      const hasBeenAddedInSession = sessionStorage.getItem(`bookingId_${bookingId}`);
-      if (hasBeenAddedInSession) {
-        // If it was already added in this session, don't add again
-        return;
+    if (bookingData && !bookingAddedRef.current) {
+      // Add booking to context (avoid duplicates in session)
+      const hasBeenAddedInSession = sessionStorage.getItem(`bookingId_${bookingData.id}`);
+      if (!hasBeenAddedInSession) {
+        addBooking({
+          id: bookingData.id,
+          route: `${bookingData.from} → ${bookingData.to}`,
+          departureDate: bookingData.departureDate || 'N/A',
+          departureTime: bookingData.departureTime || 'N/A',
+          passengers: bookingData.passengers || 1,
+          passengerName: `${bookingData.firstName} ${bookingData.lastName}`,
+          passengerEmail: bookingData.email,
+          passengerPhone: bookingData.phone,
+        });
+        sessionStorage.setItem(`bookingId_${bookingData.id}`, 'true');
+        bookingAddedRef.current = true;
       }
-
-      addBooking({
-        id: bookingId,
-        route: `${bookingData.from} → ${bookingData.to}`,
-        departureDate: bookingData.departureDate ? format(bookingData.departureDate, "MMMM dd, yyyy") : 'N/A',
-        departureTime: bookingData.departureTime,
-        passengers: parseInt(bookingData.passengers, 10),
-        passengerName: `${bookingData.firstName} ${bookingData.lastName}`,
-        passengerEmail: bookingData.email,
-        passengerPhone: bookingData.phone,
-      });
-      sessionStorage.setItem(`bookingId_${addBooking}`, 'true');
-      bookingAddedRef.current = true; // Set ref to true to prevent future additions within this component instance
-      console.log("Booking added:", addBooking);
     }
-  }, [bookingData, addBooking, bookingId]); // Ensure bookingId is a dependency
+  }, [bookingData, addBooking]);
 
-  if (!bookingData || !bookingId) {
+  if (!bookingData) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -64,7 +56,6 @@ const BookingConfirmation = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
       <main className="pt-20">
         {/* Success Header */}
         <section className="bg-green-50 py-16">
@@ -72,7 +63,7 @@ const BookingConfirmation = () => {
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
             <h1 className="text-4xl font-bold text-green-700 mb-4">{t('bookingConfirmed')}</h1>
             <p className="text-xl text-green-600">{t('bookingSuccessfullySubmitted')}</p>
-            <p className="text-lg text-gray-600 mt-2">{t('bookingID')} <span className="font-semibold">{bookingId}</span></p>
+            <p className="text-lg text-gray-600 mt-2">{t('bookingID')} <span className="font-semibold">{bookingData.id}</span></p>
           </div>
         </section>
 
@@ -85,11 +76,11 @@ const BookingConfirmation = () => {
                   <CardTitle className="text-2xl">{t('bookingDetails')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Trip Information */}
                   <div className="grid md:grid-cols-2 gap-6">
+                    {/* Trip Information */}
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">{t('tripInformation')}</h3>
-                      
+
                       <div className="flex items-center space-x-3">
                         <MapPin className="h-5 w-5 text-teal-500" />
                         <div>
@@ -101,9 +92,7 @@ const BookingConfirmation = () => {
                       <div className="flex items-center space-x-3">
                         <Calendar className="h-5 w-5 text-teal-500" />
                         <div>
-                          <p className="font-semibold">
-                            {bookingData.departureDate ? format(bookingData.departureDate, "MMMM dd, yyyy") : t('dateNotSelected')}
-                          </p>
+                          <p className="font-semibold">{bookingData.departureDate}</p>
                           <p className="text-sm text-gray-600">{t('departureDate')}</p>
                         </div>
                       </div>
@@ -119,7 +108,7 @@ const BookingConfirmation = () => {
                       <div className="flex items-center space-x-3">
                         <Users className="h-5 w-5 text-teal-500" />
                         <div>
-                          <p className="font-semibold">{bookingData.passengers} {bookingData.passengers !== '1' ? t('passengersPlural') : t('passenger')}</p>
+                          <p className="font-semibold">{bookingData.passengers} {bookingData.passengers > 1 ? t('passengersPlural') : t('passenger')}</p>
                           <p className="text-sm text-gray-600">{t('totalPassengers')}</p>
                         </div>
                       </div>
@@ -128,22 +117,18 @@ const BookingConfirmation = () => {
                     {/* Passenger Information */}
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">{t('passengerDetails')}</h3>
-                      
                       <div>
                         <p className="font-semibold">{bookingData.firstName} {bookingData.lastName}</p>
                         <p className="text-sm text-gray-600">{t('primaryPassenger')}</p>
                       </div>
-
                       <div className="flex items-center space-x-3">
                         <Mail className="h-4 w-4 text-gray-500" />
                         <p>{bookingData.email}</p>
                       </div>
-
                       <div className="flex items-center space-x-3">
                         <Phone className="h-4 w-4 text-gray-500" />
                         <p>{bookingData.phone}</p>
                       </div>
-
                       {bookingData.specialRequests && (
                         <div>
                           <p className="font-semibold mb-1">{t('specialRequests')}:</p>
@@ -170,19 +155,13 @@ const BookingConfirmation = () => {
                   {/* Action Buttons */}
                   <div className="border-t pt-6 flex flex-col sm:flex-row gap-4">
                     <Link to="/" className="flex-1">
-                      <Button variant="outline" className="w-full">
-                        {t('backToHome')}
-                      </Button>
+                      <Button variant="outline" className="w-full">{t('backToHome')}</Button>
                     </Link>
                     <Link to="/booking" className="flex-1">
-                      <Button className="w-full bg-teal-500 hover:bg-teal-600">
-                        {t('makeAnotherBooking')}
-                      </Button>
+                      <Button className="w-full bg-teal-500 hover:bg-teal-600">{t('makeAnotherBooking')}</Button>
                     </Link>
                     <Link to="/booking-history" className="flex-1">
-                      <Button className="w-full bg-blue-700 hover:bg-blue-800">
-                        {t('viewBookingHistory')}
-                      </Button>
+                      <Button className="w-full bg-blue-700 hover:bg-blue-800">{t('viewBookingHistory')}</Button>
                     </Link>
                   </div>
                 </CardContent>
@@ -191,7 +170,6 @@ const BookingConfirmation = () => {
           </div>
         </section>
       </main>
-
       <Footer />
     </div>
   );

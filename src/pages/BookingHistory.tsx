@@ -9,6 +9,7 @@ import { useLanguage } from '../context/LanguageContext';
 const BookingHistory = () => {
   const { bookings } = useBooking();
   const { t } = useLanguage();
+  console.log("Bookings:", bookings, Array.isArray(bookings));
 
   return (
     <div className="min-h-screen bg-background">
@@ -16,6 +17,7 @@ const BookingHistory = () => {
       <main className="pt-20 py-16">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl font-bold mb-8 text-center">{t('bookingHistory')}</h1>
+          
 
           {bookings.length === 0 ? (
             <p className="text-center text-muted-foreground">{t('noBookingsYet')}</p>
@@ -67,4 +69,4 @@ const BookingHistory = () => {
   );
 };
 
-export default BookingHistory; 
+export default BookingHistory;
