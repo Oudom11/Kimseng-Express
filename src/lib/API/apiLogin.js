@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 // Login API
 export const loginApi = async (email, password) => {
   try {
-    const response = await axios.post(`http://127.0.0.1:8000/api/login`, { email, password });
+    const response = await axios.post(`https://su24.34.juicyjisu.us/api/login`, { email, password });
 
     // Save token if available
     if (response.data.token) {
@@ -23,7 +23,7 @@ export const loginApi = async (email, password) => {
 
 export const signupApi = async (formData) => {
   try {
-    const response = await axios.post(`http://su24.34.juicyjisu.us/api/login`, formData);
+    const response = await axios.post(`https://su24.34.juicyjisu.us/api/Register`, formData);
 
     // Save token if available
     if (response.data.token) {

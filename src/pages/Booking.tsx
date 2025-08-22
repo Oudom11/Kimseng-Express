@@ -148,7 +148,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   setIsLoading(true);
   try {
-    const response = await axios.get("http://su24.34.juicyjisu.us/api/routes");
+    const response = await axios.get("https://su24.34.juicyjisu.us/api/routes");
 
     const routes = response.data.map((route: any) => ({
       id: route.Route_id,
@@ -262,15 +262,15 @@ const handleBookNow = async (trip: any, vehicle: any) => {
     passenger_email: formData.email,
     passenger_count: formData.passengers,
     special_requests: formData.specialRequests,
-    price: totalPrice,
+  
   };
 
   setIsLoading(true);
   try {
     const token = localStorage.getItem("token");
     const url = token
-      ? "http://su24.34.juicyjisu.us/api/bookings"
-      : "http://su24.34.juicyjisu.us/api/bookings/guest";
+      ? "https://su24.34.juicyjisu.us/api/bookings"
+      : "https://su24.34.juicyjisu.us/api/bookings/guest";
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     // Send bookings for each seat
@@ -283,7 +283,7 @@ const handleBookNow = async (trip: any, vehicle: any) => {
     // Mark seats as unavailable
     await Promise.all(
       selectedSeats.map((seatNumber) =>
-        axios.patch(`http://su24.34.juicyjisu.us/api/seat/by-name/${seatNumber}`, { Is_available: 0 })
+        axios.patch(`https://su24.34.juicyjisu.us/api/seat/by-name/${seatNumber}`, { Is_available: 0 })
       )
     );
 
