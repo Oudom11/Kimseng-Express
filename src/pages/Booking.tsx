@@ -89,12 +89,12 @@ useEffect(() => {
   const fetchData = async () => {
     try {
       const [timeRes, cityRes , seatsRes,tripTypesRes,vehiclesRes ] = await Promise.all([
-        axios.get("http://127.0.0.1:8000/api/times"),
-        axios.get("http://127.0.0.1:8000/api/cities"),
-        axios.get("http://127.0.0.1:8000/api/seat"),
-          axios.get("http://127.0.0.1:8000/api/triptype"),
-           axios.get("http://127.0.0.1:8000/api/vehicles")
-      
+        axios.get("http://su24.34.juicyjisu.us/api/times"),
+        axios.get("http://su24.34.juicyjisu.us/api/cities"),
+        axios.get("http://su24.34.juicyjisu.us/api/seat"),
+        axios.get("http://su24.34.juicyjisu.us/api/triptype"),
+        axios.get("http://su24.34.juicyjisu.us/api/vehicles")
+
         
       ]);
 
@@ -148,7 +148,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   setIsLoading(true);
   try {
-    const response = await axios.get("http://127.0.0.1:8000/api/routes");
+    const response = await axios.get("http://su24.34.juicyjisu.us/api/routes");
 
     const routes = response.data.map((route: any) => ({
       id: route.Route_id,
@@ -269,8 +269,8 @@ const handleBookNow = async (trip: any, vehicle: any) => {
   try {
     const token = localStorage.getItem("token");
     const url = token
-      ? "http://127.0.0.1:8000/api/bookings"
-      : "http://127.0.0.1:8000/api/bookings/guest";
+      ? "http://su24.34.juicyjisu.us/api/bookings"
+      : "http://su24.34.juicyjisu.us/api/bookings/guest";
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     // Send bookings for each seat
@@ -283,7 +283,7 @@ const handleBookNow = async (trip: any, vehicle: any) => {
     // Mark seats as unavailable
     await Promise.all(
       selectedSeats.map((seatNumber) =>
-        axios.patch(`http://127.0.0.1:8000/api/seat/by-name/${seatNumber}`, { Is_available: 0 })
+        axios.patch(`http://su24.34.juicyjisu.us/api/seat/by-name/${seatNumber}`, { Is_available: 0 })
       )
     );
 
